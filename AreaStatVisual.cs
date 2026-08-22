@@ -29,7 +29,7 @@ public class AreaStatVisual : BaseSettingsPlugin<AreaStatVisualSettings>
     private readonly Dictionary<(GameStat Stat, int Value), string?> _statTranslationByKey = new();
     private string _measureCustomFontSpec = "";
     private bool _measureUseCustomFont;
-    private string _mapModifierFilter = "";
+    private string _mapStatFilter = "";
 
     private List<StatRule>? _rules;
 
@@ -47,7 +47,7 @@ public class AreaStatVisual : BaseSettingsPlugin<AreaStatVisualSettings>
         ImGui.SameLine();
         ImGui.TextDisabled("Apply edited regex and display settings immediately.");
 
-        if (!ImGui.CollapsingHeader("Debug: current map modifiers")) return;
+        if (!ImGui.CollapsingHeader("Debug: current map stats")) return;
 
         var mapStats = GameController.InGame ? GameController.IngameState.Data?.MapStats : null;
         if (mapStats == null)
@@ -57,17 +57,16 @@ public class AreaStatVisual : BaseSettingsPlugin<AreaStatVisualSettings>
         }
 
         ImGui.SetNextItemWidth(-1);
-        ImGui.InputTextWithHint("##mapModifierFilter", "Filter modifier names...", ref _mapModifierFilter, 256);
+        ImGui.InputTextWithHint("##mapStatFilter", "Filter internal stat names...", ref _mapStatFilter, 256);
 
-        var mapModifiers = mapStats
-            .Where(x => x.Key.ToString().StartsWith("Map", StringComparison.Ordinal))
-            .Where(x => string.IsNullOrWhiteSpace(_mapModifierFilter) ||
-                        x.Key.ToString().Contains(_mapModifierFilter.Trim(), StringComparison.OrdinalIgnoreCase))
+        var visibleStats = mapStats
+            .Where(x => string.IsNullOrWhiteSpace(_mapStatFilter) ||
+                        x.Key.ToString().Contains(_mapStatFilter.Trim(), StringComparison.OrdinalIgnoreCase))
             .OrderBy(x => x.Key.ToString(), StringComparer.Ordinal)
             .ToList();
 
-        ImGui.TextDisabled($"{mapModifiers.Count} modifier(s). Use the name on the left as GameStatRegex.");
-        foreach (var stat in mapModifiers)
+        ImGui.TextDisabled($"Showing {visibleStats.Count} of {mapStats.Count} stat(s). Use the name on the left as GameStatRegex.");
+        foreach (var stat in visibleStats)
         {
             ImGui.TextUnformatted($"{stat.Key} = {stat.Value}");
         }
