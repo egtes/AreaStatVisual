@@ -29,6 +29,7 @@ public class AreaStatVisual : BaseSettingsPlugin<AreaStatVisualSettings>
     private readonly Dictionary<(GameStat Stat, int Value), string?> _statTranslationByKey = new();
     private string _measureCustomFontSpec = "";
     private bool _measureUseCustomFont;
+    private string _mapModifierFilter = "";
 
     private List<StatRule>? _rules;
 
@@ -55,8 +56,13 @@ public class AreaStatVisual : BaseSettingsPlugin<AreaStatVisualSettings>
             return;
         }
 
+        ImGui.SetNextItemWidth(-1);
+        ImGui.InputTextWithHint("##mapModifierFilter", "Filter modifier names...", ref _mapModifierFilter, 256);
+
         var mapModifiers = mapStats
             .Where(x => x.Key.ToString().StartsWith("Map", StringComparison.Ordinal))
+            .Where(x => string.IsNullOrWhiteSpace(_mapModifierFilter) ||
+                        x.Key.ToString().Contains(_mapModifierFilter.Trim(), StringComparison.OrdinalIgnoreCase))
             .OrderBy(x => x.Key.ToString(), StringComparer.Ordinal)
             .ToList();
 
