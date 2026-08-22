@@ -46,7 +46,7 @@ public class AreaStatVisual : BaseSettingsPlugin<AreaStatVisualSettings>
         ImGui.SameLine();
         ImGui.TextDisabled("Apply edited regex and display settings immediately.");
 
-        if (!ImGui.CollapsingHeader("Debug: current map stats")) return;
+        if (!ImGui.CollapsingHeader("Debug: current map modifiers")) return;
 
         var mapStats = GameController.InGame ? GameController.IngameState.Data?.MapStats : null;
         if (mapStats == null)
@@ -55,8 +55,13 @@ public class AreaStatVisual : BaseSettingsPlugin<AreaStatVisualSettings>
             return;
         }
 
-        ImGui.TextDisabled($"{mapStats.Count} stat(s). Use the name on the left as GameStatRegex.");
-        foreach (var stat in mapStats.OrderBy(x => x.Key.ToString(), StringComparer.Ordinal))
+        var mapModifiers = mapStats
+            .Where(x => x.Key.ToString().StartsWith("Map", StringComparison.Ordinal))
+            .OrderBy(x => x.Key.ToString(), StringComparer.Ordinal)
+            .ToList();
+
+        ImGui.TextDisabled($"{mapModifiers.Count} modifier(s). Use the name on the left as GameStatRegex.");
+        foreach (var stat in mapModifiers)
         {
             ImGui.TextUnformatted($"{stat.Key} = {stat.Value}");
         }
