@@ -37,6 +37,31 @@ public class AreaStatVisual : BaseSettingsPlugin<AreaStatVisualSettings>
         Name = "Area Stat Visual";
     }
 
+    public override void DrawSettings()
+    {
+        base.DrawSettings();
+
+        ImGui.Separator();
+        if (ImGui.Button("Refresh rules and display")) RefreshDisplay();
+        ImGui.SameLine();
+        ImGui.TextDisabled("Apply edited regex and display settings immediately.");
+
+        if (!ImGui.CollapsingHeader("Debug: current map stats")) return;
+
+        var mapStats = GameController.InGame ? GameController.IngameState.Data?.MapStats : null;
+        if (mapStats == null)
+        {
+            ImGui.TextDisabled("Enter an area to inspect its map stats.");
+            return;
+        }
+
+        ImGui.TextDisabled($"{mapStats.Count} stat(s). Use the name on the left as GameStatRegex.");
+        foreach (var stat in mapStats.OrderBy(x => x.Key.ToString(), StringComparer.Ordinal))
+        {
+            ImGui.TextUnformatted($"{stat.Key} = {stat.Value}");
+        }
+    }
+
     public override void Render()
     {
         if (!Settings.Enable || !GameController.InGame) return;
@@ -50,8 +75,15 @@ public class AreaStatVisual : BaseSettingsPlugin<AreaStatVisualSettings>
 
     public override void AreaChange(AreaInstance _)
     {
+        RefreshDisplay();
+    }
+
+    private void RefreshDisplay()
+    {
         _rules = null;
+        _lineBuffer.Clear();
         _measureCache.Clear();
+        _statTranslationByKey.Clear();
     }
 
     private Dictionary<string, Color> BuildLines()
